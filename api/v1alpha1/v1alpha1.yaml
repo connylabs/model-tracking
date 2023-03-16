@@ -1,0 +1,741 @@
+openapi: 3.0.0
+info:
+  version: 1.0.0-alpha1
+  title: model-tracking
+  description: The specification for Conny's model tracking API.
+  license:
+    name: Apache 2.0
+servers:
+- url: "{protocol}://{hostname}/api/v1alpha1"
+  variables:
+    hostname:
+      description: Self-hosted model-tracking server hostname.
+      default: HOSTNAME
+    protocol:
+      description: Self-hosted model-tracking server protocol.
+      default: http
+tags:
+- name: organizations
+  description: Endpoints to manage organizations using the REST API.
+- name: models
+  description: Endpoints to manage models in an organization using the REST API.
+- name: schemas
+  description: Endpoints to manage schemas in an organization using the REST API.
+- name: versions
+  description: Endpoints to manage versions of a model using the REST API.
+- name: results
+  description: Endpoints to manage results of a version of a model using the REST API.
+paths:
+  /organizations:
+    post:
+      summary: Create an organization
+      description: Creates an organization.
+      tags:
+      - organizations
+      operationId: organizations-create
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: The name of the organization.
+              required:
+              - name
+            examples:
+              default:
+                value:
+                  name: conny
+      responses:
+        "201":
+          description: Response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Organization"
+        "401":
+          $ref: "#/components/responses/ErrorResponse"
+        "403":
+          $ref: "#/components/responses/ErrorResponse"
+        "422":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+  /organizations/{organization}/models/{model}:
+    get:
+      summary: Get organization model
+      description: Gets a model in an organization.
+      tags:
+      - models
+      operationId: models-get-for-organization
+      parameters:
+      - $ref: "#/components/parameters/Organization"
+      - $ref: "#/components/parameters/Model"
+      responses:
+        "200":
+          description: Response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Model"
+        "401":
+          $ref: "#/components/responses/ErrorResponse"
+        "403":
+          $ref: "#/components/responses/ErrorResponse"
+        "404":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+  /organizations/{organization}/models:
+    get:
+      summary: List organization models
+      description: Lists the models in an organization.
+      tags:
+      - models
+      operationId: models-list-for-organization
+      parameters:
+      - $ref: "#/components/parameters/Organization"
+      responses:
+        "200":
+          description: Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Model"
+        "401":
+          $ref: "#/components/responses/ErrorResponse"
+        "403":
+          $ref: "#/components/responses/ErrorResponse"
+        "404":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+    post:
+      summary: Create an organization model
+      description: Creates a model in an organization.
+      tags:
+      - models
+      operationId: models-create-for-organization
+      parameters:
+      - "$ref": "#/components/parameters/Organization"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: The name of the model.
+              required:
+              - name
+            examples:
+              default:
+                value:
+                  name: classifier
+      responses:
+        "201":
+          description: Response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Model"
+        "401":
+          $ref: "#/components/responses/ErrorResponse"
+        "403":
+          $ref: "#/components/responses/ErrorResponse"
+        "422":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+  /organizations/{organization}/schemas/{schema}:
+    get:
+      summary: Get organization schema
+      description: Gets a schema in an organization.
+      tags:
+      - schemas
+      operationId: schemas-get-for-organization
+      parameters:
+      - $ref: "#/components/parameters/Organization"
+      - $ref: "#/components/parameters/Schema"
+      responses:
+        "200":
+          description: Response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Schema"
+        "401":
+          $ref: "#/components/responses/ErrorResponse"
+        "403":
+          $ref: "#/components/responses/ErrorResponse"
+        "404":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+  /organizations/{organization}/schemas:
+    get:
+      summary: List organization schemas
+      description: Lists the schemas in an organization.
+      tags:
+      - schemas
+      operationId: schemas-list-for-organization
+      parameters:
+      - $ref: "#/components/parameters/Organization"
+      responses:
+        "200":
+          description: Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Schema"
+        "401":
+          $ref: "#/components/responses/ErrorResponse"
+        "403":
+          $ref: "#/components/responses/ErrorResponse"
+        "404":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+    post:
+      summary: Create an organization schema
+      description: Creates a schema in an organization.
+      tags:
+      - schemas
+      operationId: schemas-create-for-organization
+      parameters:
+      - "$ref": "#/components/parameters/Organization"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: The name of the schema.
+                input:
+                  type: string
+                  description: A string containing the JSON Schema description of the model's inputs.
+                output:
+                  type: string
+                  description: A string containing the JSON Schema description of the model's outputs.
+              required:
+              - name
+              - input
+              - output
+            examples:
+              default:
+                value:
+                  name: classifier
+                  input: |
+                    {"type": "string"}
+                  output: |
+                    {"type": "integer"}
+      responses:
+        "201":
+          description: Response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Schema"
+        "401":
+          $ref: "#/components/responses/ErrorResponse"
+        "403":
+          $ref: "#/components/responses/ErrorResponse"
+        "422":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+  /organizations/{organization}/models/{model}/versions/{version}:
+    get:
+      summary: Get model version
+      description: Gets a version for a model.
+      tags:
+      - versions
+      operationId: versions-get-for-model
+      parameters:
+      - $ref: "#/components/parameters/Organization"
+      - $ref: "#/components/parameters/Model"
+      - $ref: "#/components/parameters/Version"
+      responses:
+        "200":
+          description: Response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Version"
+        "401":
+          $ref: "#/components/responses/ErrorResponse"
+        "403":
+          $ref: "#/components/responses/ErrorResponse"
+        "404":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+  /organizations/{organization}/models/{model}/versions:
+    get:
+      summary: List model versions
+      description: Lists the versions for a model.
+      tags:
+      - versions
+      operationId: versions-list-for-model
+      parameters:
+      - $ref: "#/components/parameters/Organization"
+      - $ref: "#/components/parameters/Model"
+      responses:
+        "200":
+          description: Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Version"
+        "401":
+          $ref: "#/components/responses/ErrorResponse"
+        "403":
+          $ref: "#/components/responses/ErrorResponse"
+        "404":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+    post:
+      summary: Create a model version
+      description: Creates a version for a model.
+      tags:
+      - versions
+      operationId: versions-create-for-model
+      parameters:
+      - "$ref": "#/components/parameters/Organization"
+      - "$ref": "#/components/parameters/Model"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: The name of the version.
+                schema:
+                  type: integer
+                  description: The ID of the schema used by this version of the model.
+              required:
+              - name
+              - schema
+            examples:
+              default:
+                value:
+                  name: v1.0.1
+                  schema: 123456
+      responses:
+        "201":
+          description: Response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Version"
+        "401":
+          $ref: "#/components/responses/ErrorResponse"
+        "403":
+          $ref: "#/components/responses/ErrorResponse"
+        "422":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+  /organizations/{organization}/models/{model}/versions/{version}/results/{result}:
+    get:
+      summary: Get a result
+      description: Gets a result for a particular version of a model.
+      tags:
+      - results
+      operationId: results-get-for-version
+      parameters:
+      - $ref: "#/components/parameters/Organization"
+      - $ref: "#/components/parameters/Model"
+      - $ref: "#/components/parameters/Version"
+      - $ref: "#/components/parameters/Result"
+      responses:
+        "200":
+          description: Response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Result"
+        "401":
+          $ref: "#/components/responses/ErrorResponse"
+        "403":
+          $ref: "#/components/responses/ErrorResponse"
+        "404":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+  /organizations/{organization}/models/{model}/versions/{version}/results:
+    get:
+      summary: List results
+      description: Lists the results for a particular version of a model.
+      tags:
+      - results
+      operationId: results-list-for-version
+      parameters:
+      - $ref: "#/components/parameters/Organization"
+      - $ref: "#/components/parameters/Model"
+      - $ref: "#/components/parameters/Version"
+      responses:
+        "200":
+          description: Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Result"
+        "401":
+          $ref: "#/components/responses/ErrorResponse"
+        "403":
+          $ref: "#/components/responses/ErrorResponse"
+        "404":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+    post:
+      summary: Create a model result
+      description: Creates a result.
+      tags:
+      - results
+      operationId: results-create-for-version
+      parameters:
+      - "$ref": "#/components/parameters/Organization"
+      - "$ref": "#/components/parameters/Model"
+      - "$ref": "#/components/parameters/Version"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                input:
+                  type: string
+                  description: The input given to the model to produce this result.
+                output:
+                  type: string
+                  description: The output that produced by the model for the given input.
+                trueOutput:
+                  type: string
+                  description: The correct output that should be produced for the given input.
+                time:
+                  type: string
+                  format: date-time
+                  description: The timestamp of when the result was produced. Defaults to the time that the model-tracking server receives the request.
+              required:
+              - input
+              - output
+              - trueOutput
+            examples:
+              default:
+                value:
+                  input: |
+                    ["page 1 of 2\n", "page 2 of 2\n", "page 1 of 1\n"]
+                  output: |
+                    {"predictions": [1, 1, 1]}}
+                  trueOutput: |
+                    {"predictions": [1, 0, 1]}}
+                  time: 2014-03-03T18:58:10Z
+              s3:
+                value:
+                  input: s3://bucket/path/to/object
+                  output: |
+                    [{"class": "cat", "score": 0.9}, {"class": "kitten", "score": 0.5}]
+                  trueOutput: |
+                    [{"class": "kitten", "score": 1}]
+                  time: 2014-03-03T18:58:10Z
+      responses:
+        "201":
+          description: Response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Result"
+        "401":
+          $ref: "#/components/responses/ErrorResponse"
+        "403":
+          $ref: "#/components/responses/ErrorResponse"
+        "422":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+components:
+  parameters:
+    Organization:
+      name: organization
+      description: The organization name. The name is not case sensitive.
+      in: path
+      required: true
+      schema:
+        type: string
+      x-go-name: ParameterOrganization
+    Model:
+      name: model
+      description: The model name. The name is not case sensitive.
+      in: path
+      required: true
+      schema:
+        type: string
+      x-go-name: ParameterModel
+    Schema:
+      name: schema
+      description: The schema name. The name is not case sensitive.
+      in: path
+      required: true
+      schema:
+        type: string
+      x-go-name: ParameterSchema
+    Version:
+      name: version
+      description: The version name. The name is not case sensitive.
+      in: path
+      required: true
+      schema:
+        type: string
+      x-go-name: ParameterVersion
+    Result:
+      name: result
+      description: The result ID.
+      in: path
+      required: true
+      schema:
+        type: integer
+      x-go-name: ParameterResult
+  schemas:
+    Organization:
+      title: Organization
+      description: An organization is a namespace holding models and their schemas.
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 123456
+          x-go-name: ID
+        name:
+          description: Name of the organization.
+          type: string
+          example: conny
+        created:
+          type: string
+          format: date-time
+          example: "2011-04-10T20:09:31Z"
+        updated:
+          type: string
+          format: date-time
+          example: "2014-03-03T18:58:10Z"
+      required:
+      - id
+      - name
+      - created
+      - updated
+    Model:
+      title: Model
+      description: A model represents a machine learning service fullfilling requests.
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 123456
+          x-go-name: ID
+        name:
+          description: Name of the model.
+          type: string
+          example: object-detector
+        organization:
+          description: ID of the model's organization.
+          type: integer
+          example: 123456
+        created:
+          type: string
+          format: date-time
+          example: "2011-04-10T20:09:31Z"
+        updated:
+          type: string
+          format: date-time
+          example: "2014-03-03T18:58:10Z"
+      required:
+      - id
+      - name
+      - organization
+      - created
+      - updated
+    Schema:
+      title: Schema
+      description: A schema represents the expected structure of the inputs and outputs of a machine learning service.
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 123456
+          x-go-name: ID
+        name:
+          description: Name of the model.
+          type: string
+          example: object-detector
+        input:
+          description: A string containing the JSON Schema description of the model's inputs.
+          type: string
+          example: |
+            {"type": "string"}
+        output:
+          description: A string containing the JSON Schema description of the model's output.
+          type: string
+          example: |
+            {"type": "integer"}
+        organization:
+          description: ID of the model's organization.
+          type: integer
+          example: 123456
+        created:
+          type: string
+          format: date-time
+          example: "2011-04-10T20:09:31Z"
+        updated:
+          type: string
+          format: date-time
+          example: "2014-03-03T18:58:10Z"
+      required:
+      - id
+      - name
+      - input
+      - output
+      - organization
+      - created
+      - updated
+    Version:
+      title: Version
+      description: A version represents a version of a machine learning service fullfilling requests.
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 123456
+          x-go-name: ID
+        name:
+          description: Name of the model.
+          type: string
+          example: object-detector
+        organization:
+          description: ID of the model's organization.
+          type: integer
+          example: 123456
+        model:
+          description: ID of the model.
+          type: integer
+          example: 123456
+        schema:
+          description: ID of the schema of the model's inputs and outputs.
+          type: integer
+          example: 123456
+        created:
+          type: string
+          format: date-time
+          example: "2011-04-10T20:09:31Z"
+        updated:
+          type: string
+          format: date-time
+          example: "2014-03-03T18:58:10Z"
+      required:
+      - id
+      - name
+      - organization
+      - model
+      - schema
+      - created
+      - updated
+    Result:
+      title: Result
+      description: A result represents the output produce by a particular version of a machine learning service fullfilling requests.
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 123456
+          x-go-name: ID
+        organization:
+          description: ID of the model's organization.
+          type: integer
+          example: 123456
+        model:
+          description: ID of the model.
+          type: integer
+          example: 123456
+        version:
+          description: ID of the version.
+          type: integer
+          example: 123456
+        input:
+          description: The input given to the model to produce this result.
+          type: string
+          example: s3://bucket/path/to/object
+        output:
+          description: The output that produced by the model for the given input.
+          type: string
+          example: |
+            [{"class": "cat", "score": 0.9}, {"class": "kitten", "score": 0.5}]
+        trueOutput:
+          description: The correct output that should be produced for the given input.
+          type: string
+          example: |
+            [{"class": "kitten", "score": 1}]
+        time:
+          description: The timestamp of when the result was produced. Defaults to the time that the model-tracking server receives the request.
+          type: string
+          format: date-time
+          example: "2011-04-10T20:09:31Z"
+        created:
+          type: string
+          format: date-time
+          example: "2011-04-10T20:09:31Z"
+        updated:
+          type: string
+          format: date-time
+          example: "2014-03-03T18:58:10Z"
+      required:
+      - id
+      - name
+      - organization
+      - model
+      - version
+      - input
+      - output
+      - trueOutput
+      - time
+      - created
+      - updated
+    Error:
+      description: An error response.
+      properties:
+        code:
+          type: integer
+          example: 404
+        error:
+          type: string
+          example: Not Found
+      required:
+      - code
+      - error
+  responses:
+    ErrorResponse:
+      description: An error response.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
