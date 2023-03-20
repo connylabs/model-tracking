@@ -114,7 +114,7 @@ down: $(MIGRATE_BINARY)
 	$(MIGRATE_BINARY) -dir db/migrations postgres "$(DATABASE_URL)" down
 
 $(GOLANGCI_LINT_BINARY): | $(BIN_DIR)
-	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b bin v1.50.1
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b bin v1.52.0
 
 $(MIGRATE_BINARY): | $(BIN_DIR)
 	go build -mod=vendor -o $@ github.com/pressly/goose/cmd/goose
