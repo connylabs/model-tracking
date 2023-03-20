@@ -22,6 +22,7 @@ import (
 	"github.com/metalmatze/signal/internalserver"
 	"github.com/oklog/run"
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/collectors"
 
 	v1alpha1 "github.com/connylabs/model-tracking/api/v1alpha1"
 	"github.com/connylabs/model-tracking/store"
@@ -120,8 +121,8 @@ func Main() error {
 
 	reg := prometheus.NewRegistry()
 	reg.MustRegister(
-		prometheus.NewGoCollector(),
-		prometheus.NewProcessCollector(prometheus.ProcessCollectorOpts{}),
+		collectors.NewGoCollector(),
+		collectors.NewProcessCollector(collectors.ProcessCollectorOpts{}),
 	)
 
 	var g run.Group
@@ -134,15 +135,16 @@ func Main() error {
 		g.Add(func() error {
 			level.Info(logger).Log("msg", "starting the model-tracking HTTP server", "addr", *listen, "version", version.Version)
 			r := chi.NewRouter()
-			v1alpha1.HandlerWithOptions(v1alpha1.NewServer(store.NewSQLStore(db), log.With(logger, "component", "http-server")), v1alpha1.ChiServerOptions{
-				BaseRouter: r,
-				BaseURL:    "/api/v1alpha1",
-			})
-			//v1alpha1.New(
-			//log.With(logger, "component", "http-server"),
-			//v1alpha1.WithRegisterer(prometheus.WrapRegistererWith(prometheus.Labels{"api": "v1"}, reg)),
-			//v1alpha1.WithRouter(r),
-			//)
+			v1alpha1.HandlerWithOptions(
+				v1alpha1.NewInstrumentedServerInterface(
+					v1alpha1.NewServer(
+						store.NewSQLStore(db), log.With(logger, "component", "http-server")),
+					reg,
+				), v1alpha1.ChiServerOptions{
+					BaseRouter: r,
+					BaseURL:    "/api/v1alpha1",
+				},
+			)
 			if err := http.Serve(l, r); err != nil && err != http.ErrServerClosed {
 				return fmt.Errorf("error: server exited unexpectedly: %v", err)
 			}

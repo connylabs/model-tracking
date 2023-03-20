@@ -50,7 +50,7 @@ build-%:
 
 all-build: $(addprefix build-$(OS)-, $(ALL_ARCH))
 
-$(BINS): $(SRC) go.mod
+$(BINS): $(SRC) go.mod api/v1alpha1/v1alpha1.go api/v1alpha1/metrics.go
 	@mkdir -p $(BIN_DIR)/$(word 2,$(subst /, ,$@))/$(word 3,$(subst /, ,$@))
 	@echo "building: $@"
 	@$(BUILD_PREFIX) \
@@ -68,6 +68,9 @@ $(BIN_DIR):
 
 api/v1alpha1/v1alpha1.go: api/v1alpha1/v1alpha1.yaml $(OAPI_CODEGEN_BINARY)
 	$(OAPI_CODEGEN_BINARY) -generate types,client,chi-server,spec -package v1alpha1 -o $@ $<
+
+api/v1alpha1/metrics.go: api/v1alpha1/server.go api/v1alpha1/v1alpha1.go
+	go generate api/v1alpha1/server.go
 
 sql-gen: $(JET_BINARY)
 	@docker run --rm --name generate -d -p 5433:5432 -e POSTGRES_USER=$(PROJECT) -e POSTGRES_PASSWORD=$(PROJECT) -e POSTGRES_DB=$(PROJECT) postgres
