@@ -15,6 +15,8 @@ import (
 	"github.com/connylabs/model-tracking/store/model-tracking/public/model"
 )
 
+//go:generate go run github.com/leonnicolas/genstrument --file-path v1alpha1.go --pattern ServerInterface --mode handler --out metrics.go
+
 func httpError(logger log.Logger) func(w http.ResponseWriter, m string, code int) {
 	hj := httpJSON(logger)
 	return func(w http.ResponseWriter, m string, code int) {
