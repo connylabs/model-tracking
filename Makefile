@@ -106,7 +106,7 @@ vendor:
 	go mod vendor
 
 mock:
-	docker run --init --rm -v $$(pwd):/var/lib/$(PROJECT) -p 4010:4010 stoplight/prism:4 mock -h 0.0.0.0 /var/lib/$(PROJECT)/api/v1/v1.yaml
+	docker run --init --rm -v $$(pwd):/var/lib/$(PROJECT) -p 4010:4010 stoplight/prism:4 mock -h 0.0.0.0 /var/lib/$(PROJECT)/api/v1alpha1/v1alpha1.yaml
 
 DATABASE_URL ?= user=$(PROJECT) password=$(PROJECT) dbname=$(PROJECT) host=localhost port=5432 sslmode=disable
 
