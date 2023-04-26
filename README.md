@@ -1,6 +1,6 @@
 # model-tracking
 
-`model-tracking` is a tool for storing tracking the results of machine learning services.
+`model-tracking` is a tool for tracking the results of machine learning services.
 
 ## Running model-tracking
 
@@ -13,7 +13,7 @@ During development, this database can be provided using a PostgreSQL Docker cont
 docker run --rm -it -p 5432:5432 -e POSTGRES_USER=model-tracking -e POSTGRES_PASSWORD=model-tracking -e POSTGRES_DB=model-tracking postgres
 ```
 
-To prepare the database execute the following Makefile targets:
+To prepare the database, execute the following Makefile target:
 
 ```shell
 # Run the migrations against the database.
