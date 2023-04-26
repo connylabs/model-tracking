@@ -14,8 +14,8 @@ import (
 type Schema struct {
 	ID           int32 `sql:"primary_key"`
 	Name         string
-	Input        string
-	Output       string
+	Input        []byte
+	Output       []byte
 	Organization int32
 	Created      *time.Time
 	Updated      *time.Time
