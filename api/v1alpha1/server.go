@@ -201,12 +201,12 @@ func (s *server) SchemasCreateForOrganization(w http.ResponseWriter, r *http.Req
 
 	sl := gojsonschema.NewSchemaLoader()
 	sl.Validate = true
-	if err := sl.AddSchemas(gojsonschema.NewStringLoader(body.Input)); err != nil {
+	if err := sl.AddSchemas(gojsonschema.NewBytesLoader(body.Input)); err != nil {
 		s.httpError(w, "invalid input schema", http.StatusUnprocessableEntity)
 		return
 	}
 
-	if err := sl.AddSchemas(gojsonschema.NewStringLoader(body.Output)); err != nil {
+	if err := sl.AddSchemas(gojsonschema.NewBytesLoader(body.Output)); err != nil {
 		s.httpError(w, "invalid output schema", http.StatusUnprocessableEntity)
 		return
 	}
@@ -398,7 +398,7 @@ func (s *server) ResultsCreateForVersion(w http.ResponseWriter, r *http.Request,
 		return
 	}
 
-	inputSchema, err := gojsonschema.NewSchema(gojsonschema.NewStringLoader(schema.Input))
+	inputSchema, err := gojsonschema.NewSchema(gojsonschema.NewBytesLoader(schema.Input))
 	if err != nil {
 		s.httpError(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -413,7 +413,7 @@ func (s *server) ResultsCreateForVersion(w http.ResponseWriter, r *http.Request,
 		return
 	}
 
-	outputSchema, err := gojsonschema.NewSchema(gojsonschema.NewStringLoader(schema.Output))
+	outputSchema, err := gojsonschema.NewSchema(gojsonschema.NewBytesLoader(schema.Output))
 	if err != nil {
 		s.httpError(w, err.Error(), http.StatusInternalServerError)
 		return

@@ -224,11 +224,11 @@ paths:
                   type: string
                   description: The name of the schema.
                 input:
-                  type: string
-                  description: A string containing the JSON Schema description of the model's inputs.
+                  description: The JSON Schema description of the model's inputs.
+                  x-go-type: json.RawMessage
                 output:
-                  type: string
-                  description: A string containing the JSON Schema description of the model's outputs.
+                  description: The JSON Schema description of the model's outputs.
+                  x-go-type: json.RawMessage
               required:
               - name
               - input
@@ -237,10 +237,10 @@ paths:
               default:
                 value:
                   name: classifier
-                  input: |
-                    {"type": "string"}
-                  output: |
-                    {"type": "integer"}
+                  input:
+                    type: string
+                  output:
+                    type: integer
       responses:
         "201":
           description: Response
@@ -431,7 +431,7 @@ paths:
                   description: The input given to the model to produce this result.
                 output:
                   type: string
-                  description: The output that produced by the model for the given input.
+                  description: The output produced by the model for the given input.
                 trueOutput:
                   type: string
                   description: The correct output that should be produced for the given input.
@@ -590,15 +590,13 @@ components:
           type: string
           example: object-detector
         input:
-          description: A string containing the JSON Schema description of the model's inputs.
-          type: string
-          example: |
-            {"type": "string"}
+          description: The JSON Schema description of the model's inputs.
+          example:
+            type: string
         output:
-          description: A string containing the JSON Schema description of the model's output.
-          type: string
-          example: |
-            {"type": "integer"}
+          description: The JSON Schema description of the model's output.
+          example:
+            type: integer
         organization:
           description: ID of the model's organization.
           type: integer
