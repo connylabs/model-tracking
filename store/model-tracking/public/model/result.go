@@ -16,9 +16,9 @@ type Result struct {
 	Organization int32
 	Model        int32
 	Version      int32
-	Input        string
-	Output       string
-	TrueOutput   string
+	Input        []byte
+	Output       []byte
+	TrueOutput   []byte
 	Time         time.Time
 	Created      *time.Time
 	Updated      *time.Time
