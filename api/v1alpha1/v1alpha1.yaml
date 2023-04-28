@@ -593,10 +593,12 @@ components:
           description: The JSON Schema description of the model's inputs.
           example:
             type: string
+          x-go-type: json.RawMessage
         output:
           description: The JSON Schema description of the model's output.
           example:
             type: integer
+          x-go-type: json.RawMessage
         organization:
           description: ID of the model's organization.
           type: integer
