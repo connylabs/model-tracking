@@ -403,7 +403,7 @@ func (s *server) ResultsCreateForVersion(w http.ResponseWriter, r *http.Request,
 		s.httpError(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	validationResult, err := inputSchema.Validate(gojsonschema.NewStringLoader(body.Input))
+	validationResult, err := inputSchema.Validate(gojsonschema.NewBytesLoader(body.Input))
 	if err != nil {
 		s.httpError(w, err.Error(), http.StatusUnprocessableEntity)
 		return
@@ -418,7 +418,7 @@ func (s *server) ResultsCreateForVersion(w http.ResponseWriter, r *http.Request,
 		s.httpError(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	validationResult, err = outputSchema.Validate(gojsonschema.NewStringLoader(body.Output))
+	validationResult, err = outputSchema.Validate(gojsonschema.NewBytesLoader(body.Output))
 	if err != nil {
 		s.httpError(w, err.Error(), http.StatusUnprocessableEntity)
 		return
@@ -427,7 +427,7 @@ func (s *server) ResultsCreateForVersion(w http.ResponseWriter, r *http.Request,
 		s.httpError(w, "output does not match output schema", http.StatusUnprocessableEntity)
 		return
 	}
-	validationResult, err = outputSchema.Validate(gojsonschema.NewStringLoader(body.TrueOutput))
+	validationResult, err = outputSchema.Validate(gojsonschema.NewBytesLoader(body.TrueOutput))
 	if err != nil {
 		s.httpError(w, err.Error(), http.StatusUnprocessableEntity)
 		return
