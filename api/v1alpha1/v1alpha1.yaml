@@ -427,14 +427,14 @@ paths:
               type: object
               properties:
                 input:
-                  type: string
                   description: The input given to the model to produce this result.
+                  x-go-type: json.RawMessage
                 output:
-                  type: string
                   description: The output produced by the model for the given input.
+                  x-go-type: json.RawMessage
                 trueOutput:
-                  type: string
                   description: The correct output that should be produced for the given input.
+                  x-go-type: json.RawMessage
                 time:
                   type: string
                   format: date-time
@@ -446,20 +446,32 @@ paths:
             examples:
               default:
                 value:
-                  input: |
-                    ["page 1 of 2\n", "page 2 of 2\n", "page 1 of 1\n"]
-                  output: |
-                    {"predictions": [1, 1, 1]}}
-                  trueOutput: |
-                    {"predictions": [1, 0, 1]}}
+                  input:
+                  - "page 1 of 2\n"
+                  - "page 2 of 2\n"
+                  - "page 1 of 1\n"
+                  output:
+                    predictions:
+                    - 1
+                    - 1
+                    - 1
+                  trueOutput:
+                    predictions:
+                    - 1
+                    - 0
+                    - 1
                   time: 2014-03-03T18:58:10Z
               s3:
                 value:
                   input: s3://bucket/path/to/object
-                  output: |
-                    [{"class": "cat", "score": 0.9}, {"class": "kitten", "score": 0.5}]
-                  trueOutput: |
-                    [{"class": "kitten", "score": 1}]
+                  output:
+                  - class: cat
+                    score: 0.9
+                  - class: kitten
+                    score: 0.5
+                  trueOutput:
+                  - class: kitten
+                    score: 1
                   time: 2014-03-03T18:58:10Z
       responses:
         "201":
@@ -683,18 +695,22 @@ components:
           example: 123456
         input:
           description: The input given to the model to produce this result.
-          type: string
+          x-go-type: json.RawMessage
           example: s3://bucket/path/to/object
         output:
           description: The output that produced by the model for the given input.
-          type: string
-          example: |
-            [{"class": "cat", "score": 0.9}, {"class": "kitten", "score": 0.5}]
+          x-go-type: json.RawMessage
+          example:
+          - class: cat
+            score: 0.9
+          - class: kitten
+            score: 0.5
         trueOutput:
           description: The correct output that should be produced for the given input.
-          type: string
-          example: |
-            [{"class": "kitten", "score": 1}]
+          x-go-type: json.RawMessage
+          example:
+          - class: kitten
+            score: 1
         time:
           description: The timestamp of when the result was produced. Defaults to the time that the model-tracking server receives the request.
           type: string
