@@ -67,7 +67,7 @@ $(BIN_DIR):
 	mkdir -p $@
 
 api/v1alpha1/v1alpha1.go: api/v1alpha1/v1alpha1.yaml $(OAPI_CODEGEN_BINARY)
-	$(OAPI_CODEGEN_BINARY) -generate types,client,chi-server,spec -package v1alpha1 -o $@ $<
+	$(OAPI_CODEGEN_BINARY) -generate types,client,chi-server,spec,client -package v1alpha1 -o $@ $<
 
 api/v1alpha1/metrics.go: api/v1alpha1/server.go api/v1alpha1/v1alpha1.go
 	go generate api/v1alpha1/server.go

@@ -1,9 +1,11 @@
 module github.com/connylabs/model-tracking
 
-go 1.17
+go 1.20
 
 require (
 	github.com/deepmap/oapi-codegen v1.12.4
+	github.com/efficientgo/core v1.0.0-rc.0
+	github.com/efficientgo/e2e v0.14.0
 	github.com/getkin/kin-openapi v0.107.0
 	github.com/go-chi/chi/v5 v5.0.7
 	github.com/go-jet/jet/v2 v2.6.0
