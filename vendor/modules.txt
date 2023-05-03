@@ -38,6 +38,17 @@ github.com/denisenkom/go-mssqldb
 github.com/denisenkom/go-mssqldb/internal/cp
 github.com/denisenkom/go-mssqldb/internal/decimal
 github.com/denisenkom/go-mssqldb/internal/querytext
+# github.com/efficientgo/core v1.0.0-rc.0
+## explicit; go 1.17
+github.com/efficientgo/core/backoff
+github.com/efficientgo/core/errcapture
+github.com/efficientgo/core/errors
+github.com/efficientgo/core/merrors
+github.com/efficientgo/core/testutil
+github.com/efficientgo/core/testutil/internal
+# github.com/efficientgo/e2e v0.14.0
+## explicit; go 1.18
+github.com/efficientgo/e2e
 # github.com/getkin/kin-openapi v0.107.0
 ## explicit; go 1.16
 github.com/getkin/kin-openapi/jsoninfo
