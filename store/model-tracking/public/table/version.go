@@ -45,6 +45,16 @@ func (a VersionTable) FromSchema(schemaName string) *VersionTable {
 	return newVersionTable(schemaName, a.TableName(), a.Alias())
 }
 
+// WithPrefix creates new VersionTable with assigned table prefix
+func (a VersionTable) WithPrefix(prefix string) *VersionTable {
+	return newVersionTable(a.SchemaName(), prefix+a.TableName(), a.TableName())
+}
+
+// WithSuffix creates new VersionTable with assigned table suffix
+func (a VersionTable) WithSuffix(suffix string) *VersionTable {
+	return newVersionTable(a.SchemaName(), a.TableName()+suffix, a.TableName())
+}
+
 func newVersionTable(schemaName, tableName, alias string) *VersionTable {
 	return &VersionTable{
 		versionTable: newVersionTableImpl(schemaName, tableName, alias),

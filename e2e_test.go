@@ -267,6 +267,27 @@ func TestE2E(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "automatically create version",
+			requests: []request{
+				{
+					request: mustRequest(v1alpha1.NewModelsCreateForOrganizationRequest(server, "foo", v1alpha1.ModelsCreateForOrganizationJSONRequestBody{Name: "yup2"})),
+					status:  201,
+				},
+				{
+					request: mustRequest(v1alpha1.NewResultsCreateForVersionRequest(server, "foo", "yup2", "nonexistent-version", v1alpha1.ResultsCreateForVersionJSONRequestBody{Input: input, Output: output, TrueOutput: output})),
+					status:  404,
+				},
+				{
+					request: mustRequest(v1alpha1.NewModelsUpdateForOrganizationRequest(server, "foo", "yup2", v1alpha1.ModelsUpdateForOrganizationJSONRequestBody{DefaultSchema: intPointer(1)})),
+					status:  200,
+				},
+				{
+					request: mustRequest(v1alpha1.NewResultsCreateForVersionRequest(server, "foo", "yup2", "nonexistent-version", v1alpha1.ResultsCreateForVersionJSONRequestBody{Input: input, Output: output, TrueOutput: output})),
+					status:  201,
+				},
+			},
+		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			for _, r := range tc.requests {
@@ -340,3 +361,7 @@ var output = []byte(`{
     }
   ]
 }`)
+
+func intPointer(i int) *int {
+	return &i
+}

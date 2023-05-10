@@ -45,6 +45,16 @@ func (a SchemaTable) FromSchema(schemaName string) *SchemaTable {
 	return newSchemaTable(schemaName, a.TableName(), a.Alias())
 }
 
+// WithPrefix creates new SchemaTable with assigned table prefix
+func (a SchemaTable) WithPrefix(prefix string) *SchemaTable {
+	return newSchemaTable(a.SchemaName(), prefix+a.TableName(), a.TableName())
+}
+
+// WithSuffix creates new SchemaTable with assigned table suffix
+func (a SchemaTable) WithSuffix(suffix string) *SchemaTable {
+	return newSchemaTable(a.SchemaName(), a.TableName()+suffix, a.TableName())
+}
+
 func newSchemaTable(schemaName, tableName, alias string) *SchemaTable {
 	return &SchemaTable{
 		schemaTable: newSchemaTableImpl(schemaName, tableName, alias),

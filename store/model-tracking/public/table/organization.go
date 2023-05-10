@@ -42,6 +42,16 @@ func (a OrganizationTable) FromSchema(schemaName string) *OrganizationTable {
 	return newOrganizationTable(schemaName, a.TableName(), a.Alias())
 }
 
+// WithPrefix creates new OrganizationTable with assigned table prefix
+func (a OrganizationTable) WithPrefix(prefix string) *OrganizationTable {
+	return newOrganizationTable(a.SchemaName(), prefix+a.TableName(), a.TableName())
+}
+
+// WithSuffix creates new OrganizationTable with assigned table suffix
+func (a OrganizationTable) WithSuffix(suffix string) *OrganizationTable {
+	return newOrganizationTable(a.SchemaName(), a.TableName()+suffix, a.TableName())
+}
+
 func newOrganizationTable(schemaName, tableName, alias string) *OrganizationTable {
 	return &OrganizationTable{
 		organizationTable: newOrganizationTableImpl(schemaName, tableName, alias),

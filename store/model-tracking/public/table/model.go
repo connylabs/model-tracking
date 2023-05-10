@@ -17,11 +17,12 @@ type modelTable struct {
 	postgres.Table
 
 	//Columns
-	ID           postgres.ColumnInteger
-	Name         postgres.ColumnString
-	Organization postgres.ColumnInteger
-	Created      postgres.ColumnTimestamp
-	Updated      postgres.ColumnTimestamp
+	ID            postgres.ColumnInteger
+	Name          postgres.ColumnString
+	Organization  postgres.ColumnInteger
+	Created       postgres.ColumnTimestamp
+	Updated       postgres.ColumnTimestamp
+	DefaultSchema postgres.ColumnInteger
 
 	AllColumns     postgres.ColumnList
 	MutableColumns postgres.ColumnList
@@ -43,6 +44,16 @@ func (a ModelTable) FromSchema(schemaName string) *ModelTable {
 	return newModelTable(schemaName, a.TableName(), a.Alias())
 }
 
+// WithPrefix creates new ModelTable with assigned table prefix
+func (a ModelTable) WithPrefix(prefix string) *ModelTable {
+	return newModelTable(a.SchemaName(), prefix+a.TableName(), a.TableName())
+}
+
+// WithSuffix creates new ModelTable with assigned table suffix
+func (a ModelTable) WithSuffix(suffix string) *ModelTable {
+	return newModelTable(a.SchemaName(), a.TableName()+suffix, a.TableName())
+}
+
 func newModelTable(schemaName, tableName, alias string) *ModelTable {
 	return &ModelTable{
 		modelTable: newModelTableImpl(schemaName, tableName, alias),
@@ -52,24 +63,26 @@ func newModelTable(schemaName, tableName, alias string) *ModelTable {
 
 func newModelTableImpl(schemaName, tableName, alias string) modelTable {
 	var (
-		IDColumn           = postgres.IntegerColumn("id")
-		NameColumn         = postgres.StringColumn("name")
-		OrganizationColumn = postgres.IntegerColumn("organization")
-		CreatedColumn      = postgres.TimestampColumn("created")
-		UpdatedColumn      = postgres.TimestampColumn("updated")
-		allColumns         = postgres.ColumnList{IDColumn, NameColumn, OrganizationColumn, CreatedColumn, UpdatedColumn}
-		mutableColumns     = postgres.ColumnList{NameColumn, OrganizationColumn, CreatedColumn, UpdatedColumn}
+		IDColumn            = postgres.IntegerColumn("id")
+		NameColumn          = postgres.StringColumn("name")
+		OrganizationColumn  = postgres.IntegerColumn("organization")
+		CreatedColumn       = postgres.TimestampColumn("created")
+		UpdatedColumn       = postgres.TimestampColumn("updated")
+		DefaultSchemaColumn = postgres.IntegerColumn("default_schema")
+		allColumns          = postgres.ColumnList{IDColumn, NameColumn, OrganizationColumn, CreatedColumn, UpdatedColumn, DefaultSchemaColumn}
+		mutableColumns      = postgres.ColumnList{NameColumn, OrganizationColumn, CreatedColumn, UpdatedColumn, DefaultSchemaColumn}
 	)
 
 	return modelTable{
 		Table: postgres.NewTable(schemaName, tableName, alias, allColumns...),
 
 		//Columns
-		ID:           IDColumn,
-		Name:         NameColumn,
-		Organization: OrganizationColumn,
-		Created:      CreatedColumn,
-		Updated:      UpdatedColumn,
+		ID:            IDColumn,
+		Name:          NameColumn,
+		Organization:  OrganizationColumn,
+		Created:       CreatedColumn,
+		Updated:       UpdatedColumn,
+		DefaultSchema: DefaultSchemaColumn,
 
 		AllColumns:     allColumns,
 		MutableColumns: mutableColumns,

@@ -70,7 +70,7 @@ func (s *server) OrganizationsCreate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	o, err := s.store.Organizations().Create(&model.Organization{Name: body.Name})
+	o, err := s.store.Organizations().Create(r.Context(), &model.Organization{Name: body.Name})
 	if err != nil {
 		s.httpError(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -85,7 +85,7 @@ func (s *server) OrganizationsCreate(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *server) ModelsListForOrganization(w http.ResponseWriter, r *http.Request, organization ParameterOrganization) {
-	ms, err := s.store.Models(organization).List()
+	ms, err := s.store.Models(organization).List(r.Context())
 	if err != nil {
 		if errors.Is(err, qrm.ErrNoRows) {
 			s.httpError(w, err.Error(), http.StatusNotFound)
@@ -108,6 +108,22 @@ func (s *server) ModelsListForOrganization(w http.ResponseWriter, r *http.Reques
 	s.httpJSON(w, models, http.StatusOK)
 }
 
+func intPointerToInt32Pointer(i *int) *int32 {
+	if i == nil {
+		return nil
+	}
+	i32 := int32(*i)
+	return &i32
+}
+
+func int32PointerToIntPointer(i32 *int32) *int {
+	if i32 == nil {
+		return nil
+	}
+	i := int(*i32)
+	return &i
+}
+
 func (s *server) ModelsCreateForOrganization(w http.ResponseWriter, r *http.Request, organization ParameterOrganization) {
 	body := new(ModelsCreateForOrganizationJSONBody)
 	d := json.NewDecoder(r.Body)
@@ -121,7 +137,7 @@ func (s *server) ModelsCreateForOrganization(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	m, err := s.store.Models(organization).Create(&model.Model{Name: body.Name})
+	m, err := s.store.Models(organization).Create(r.Context(), &model.Model{Name: body.Name, DefaultSchema: intPointerToInt32Pointer(body.DefaultSchema)})
 	if err != nil {
 		if errors.Is(err, qrm.ErrNoRows) {
 			s.httpError(w, err.Error(), http.StatusNotFound)
@@ -132,16 +148,50 @@ func (s *server) ModelsCreateForOrganization(w http.ResponseWriter, r *http.Requ
 	}
 
 	s.httpJSON(w, &Model{
-		ID:           int(m.ID),
-		Name:         m.Name,
-		Organization: int(m.Organization),
-		Created:      *m.Created,
-		Updated:      *m.Updated,
+		ID:            int(m.ID),
+		Name:          m.Name,
+		Organization:  int(m.Organization),
+		DefaultSchema: int32PointerToIntPointer(m.DefaultSchema),
+		Created:       *m.Created,
+		Updated:       *m.Updated,
 	}, http.StatusCreated)
 }
 
+func (s *server) ModelsUpdateForOrganization(w http.ResponseWriter, r *http.Request, organization ParameterOrganization, modelParam ParameterModel) {
+	body := new(ModelsUpdateForOrganizationJSONRequestBody)
+	d := json.NewDecoder(r.Body)
+	d.DisallowUnknownFields()
+	if err := d.Decode(body); err != nil {
+		if errors.Is(err, (*json.UnmarshalTypeError)(nil)) {
+			s.httpError(w, err.Error(), http.StatusUnprocessableEntity)
+			return
+		}
+		s.httpError(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	m, err := s.store.Models(organization).Update(r.Context(), &model.Model{Name: modelParam, DefaultSchema: intPointerToInt32Pointer(body.DefaultSchema)})
+	if err != nil {
+		if errors.Is(err, qrm.ErrNoRows) {
+			s.httpError(w, err.Error(), http.StatusNotFound)
+			return
+		}
+		s.httpError(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	s.httpJSON(w, &Model{
+		ID:            int(m.ID),
+		Name:          m.Name,
+		Organization:  int(m.Organization),
+		DefaultSchema: int32PointerToIntPointer(m.DefaultSchema),
+		Created:       *m.Created,
+		Updated:       *m.Updated,
+	}, http.StatusOK)
+}
+
 func (s *server) ModelsGetForOrganization(w http.ResponseWriter, r *http.Request, organization ParameterOrganization, model ParameterModel) {
-	m, err := s.store.Models(organization).Get(model)
+	m, err := s.store.Models(organization).Get(r.Context(), model)
 	if err != nil {
 		if errors.Is(err, qrm.ErrNoRows) {
 			s.httpError(w, err.Error(), http.StatusNotFound)
@@ -161,7 +211,7 @@ func (s *server) ModelsGetForOrganization(w http.ResponseWriter, r *http.Request
 }
 
 func (s *server) SchemasListForOrganization(w http.ResponseWriter, r *http.Request, organization ParameterOrganization) {
-	ss, err := s.store.Schemas(organization).List()
+	ss, err := s.store.Schemas(organization).List(r.Context())
 	if err != nil {
 		if errors.Is(err, qrm.ErrNoRows) {
 			s.httpError(w, err.Error(), http.StatusNotFound)
@@ -211,7 +261,7 @@ func (s *server) SchemasCreateForOrganization(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	schema, err := s.store.Schemas(organization).Create(&model.Schema{Input: body.Input, Name: body.Name, Output: body.Output})
+	schema, err := s.store.Schemas(organization).Create(r.Context(), &model.Schema{Input: body.Input, Name: body.Name, Output: body.Output})
 	if err != nil {
 		if errors.Is(err, qrm.ErrNoRows) {
 			s.httpError(w, err.Error(), http.StatusNotFound)
@@ -233,7 +283,7 @@ func (s *server) SchemasCreateForOrganization(w http.ResponseWriter, r *http.Req
 }
 
 func (s *server) SchemasGetForOrganization(w http.ResponseWriter, r *http.Request, organization ParameterOrganization, schema ParameterSchema) {
-	sc, err := s.store.Schemas(organization).Get(schema)
+	sc, err := s.store.Schemas(organization).Get(r.Context(), schema)
 	if err != nil {
 		if errors.Is(err, qrm.ErrNoRows) {
 			s.httpError(w, err.Error(), http.StatusNotFound)
@@ -255,7 +305,7 @@ func (s *server) SchemasGetForOrganization(w http.ResponseWriter, r *http.Reques
 }
 
 func (s *server) VersionsListForModel(w http.ResponseWriter, r *http.Request, organization ParameterOrganization, model ParameterModel) {
-	vs, err := s.store.Versions(organization, model).List()
+	vs, err := s.store.Versions(organization, model).List(r.Context())
 	if err != nil {
 		if errors.Is(err, qrm.ErrNoRows) {
 			s.httpError(w, err.Error(), http.StatusNotFound)
@@ -293,7 +343,7 @@ func (s *server) VersionsCreateForModel(w http.ResponseWriter, r *http.Request, 
 		return
 	}
 
-	v, err := s.store.Versions(organization, modelParam).Create(&model.Version{Name: body.Name, Schema: int32(body.Schema)})
+	v, err := s.store.Versions(organization, modelParam).Create(r.Context(), &model.Version{Name: body.Name, Schema: int32(body.Schema)})
 	if err != nil {
 		if errors.Is(err, qrm.ErrNoRows) {
 			s.httpError(w, err.Error(), http.StatusNotFound)
@@ -315,7 +365,7 @@ func (s *server) VersionsCreateForModel(w http.ResponseWriter, r *http.Request, 
 }
 
 func (s *server) VersionsGetForModel(w http.ResponseWriter, r *http.Request, organization ParameterOrganization, model ParameterModel, version ParameterVersion) {
-	v, err := s.store.Versions(organization, model).Get(version)
+	v, err := s.store.Versions(organization, model).Get(r.Context(), version)
 	if err != nil {
 		if errors.Is(err, qrm.ErrNoRows) {
 			s.httpError(w, err.Error(), http.StatusNotFound)
@@ -337,7 +387,7 @@ func (s *server) VersionsGetForModel(w http.ResponseWriter, r *http.Request, org
 }
 
 func (s *server) ResultsListForVersion(w http.ResponseWriter, r *http.Request, organization ParameterOrganization, model ParameterModel, version ParameterVersion) {
-	rs, err := s.store.Results(organization, model, version).List()
+	rs, err := s.store.Results(organization, model, version).List(r.Context())
 	if err != nil {
 		if errors.Is(err, qrm.ErrNoRows) {
 			s.httpError(w, err.Error(), http.StatusNotFound)
@@ -366,7 +416,7 @@ func (s *server) ResultsListForVersion(w http.ResponseWriter, r *http.Request, o
 }
 
 func (s *server) ResultsCreateForVersion(w http.ResponseWriter, r *http.Request, organization ParameterOrganization, modelParam ParameterModel, version ParameterVersion) {
-	v, err := s.store.Versions(organization, modelParam).Get(version)
+	v, err := s.store.Versions(organization, modelParam).GetOrCreate(r.Context(), version)
 	if err != nil {
 		if errors.Is(err, qrm.ErrNoRows) {
 			s.httpError(w, err.Error(), http.StatusNotFound)
@@ -376,7 +426,7 @@ func (s *server) ResultsCreateForVersion(w http.ResponseWriter, r *http.Request,
 		return
 	}
 
-	schema, err := s.store.Schemas(organization).GetByID(int(v.Schema))
+	schema, err := s.store.Schemas(organization).GetByID(r.Context(), int(v.Schema))
 	if err != nil {
 		if errors.Is(err, qrm.ErrNoRows) {
 			s.httpError(w, err.Error(), http.StatusNotFound)
@@ -442,7 +492,7 @@ func (s *server) ResultsCreateForVersion(w http.ResponseWriter, r *http.Request,
 		body.Time = &t
 	}
 
-	result, err := s.store.Results(organization, modelParam, version).Create(&model.Result{Input: body.Input, Output: body.Output, TrueOutput: body.TrueOutput, Time: *body.Time})
+	result, err := s.store.Results(organization, modelParam, version).Create(r.Context(), &model.Result{Input: body.Input, Output: body.Output, TrueOutput: body.TrueOutput, Time: *body.Time})
 	if err != nil {
 		if errors.Is(err, qrm.ErrNoRows) {
 			s.httpError(w, err.Error(), http.StatusNotFound)
@@ -467,7 +517,7 @@ func (s *server) ResultsCreateForVersion(w http.ResponseWriter, r *http.Request,
 }
 
 func (s *server) ResultsGetForVersion(w http.ResponseWriter, r *http.Request, organization ParameterOrganization, model ParameterModel, version ParameterVersion, result ParameterResult) {
-	v, err := s.store.Versions(organization, model).Get(version)
+	v, err := s.store.Versions(organization, model).Get(r.Context(), version)
 	if err != nil {
 		if errors.Is(err, qrm.ErrNoRows) {
 			s.httpError(w, err.Error(), http.StatusNotFound)

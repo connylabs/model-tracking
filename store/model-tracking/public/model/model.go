@@ -12,9 +12,10 @@ import (
 )
 
 type Model struct {
-	ID           int32 `sql:"primary_key"`
-	Name         string
-	Organization int32
-	Created      *time.Time
-	Updated      *time.Time
+	ID            int32 `sql:"primary_key"`
+	Name          string
+	Organization  int32
+	Created       *time.Time
+	Updated       *time.Time
+	DefaultSchema *int32
 }

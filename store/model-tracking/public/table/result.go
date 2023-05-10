@@ -48,6 +48,16 @@ func (a ResultTable) FromSchema(schemaName string) *ResultTable {
 	return newResultTable(schemaName, a.TableName(), a.Alias())
 }
 
+// WithPrefix creates new ResultTable with assigned table prefix
+func (a ResultTable) WithPrefix(prefix string) *ResultTable {
+	return newResultTable(a.SchemaName(), prefix+a.TableName(), a.TableName())
+}
+
+// WithSuffix creates new ResultTable with assigned table suffix
+func (a ResultTable) WithSuffix(suffix string) *ResultTable {
+	return newResultTable(a.SchemaName(), a.TableName()+suffix, a.TableName())
+}
+
 func newResultTable(schemaName, tableName, alias string) *ResultTable {
 	return &ResultTable{
 		resultTable: newResultTableImpl(schemaName, tableName, alias),

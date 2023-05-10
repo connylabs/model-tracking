@@ -42,6 +42,16 @@ func (a GooseDbVersionTable) FromSchema(schemaName string) *GooseDbVersionTable 
 	return newGooseDbVersionTable(schemaName, a.TableName(), a.Alias())
 }
 
+// WithPrefix creates new GooseDbVersionTable with assigned table prefix
+func (a GooseDbVersionTable) WithPrefix(prefix string) *GooseDbVersionTable {
+	return newGooseDbVersionTable(a.SchemaName(), prefix+a.TableName(), a.TableName())
+}
+
+// WithSuffix creates new GooseDbVersionTable with assigned table suffix
+func (a GooseDbVersionTable) WithSuffix(suffix string) *GooseDbVersionTable {
+	return newGooseDbVersionTable(a.SchemaName(), a.TableName()+suffix, a.TableName())
+}
+
 func newGooseDbVersionTable(schemaName, tableName, alias string) *GooseDbVersionTable {
 	return &GooseDbVersionTable{
 		gooseDbVersionTable: newGooseDbVersionTableImpl(schemaName, tableName, alias),
