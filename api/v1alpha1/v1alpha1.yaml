@@ -55,7 +55,7 @@ paths:
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Organization"
+                $ref: "#/components/schemas/Organization"
         "401":
           $ref: "#/components/responses/ErrorResponse"
         "403":
@@ -86,6 +86,44 @@ paths:
         "403":
           $ref: "#/components/responses/ErrorResponse"
         "404":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+    put:
+      summary: Update an organization model
+      description: updates a model in an organization.
+      tags:
+      - models
+      operationId: models-update-for-organization
+      parameters:
+      - $ref: "#/components/parameters/Organization"
+      - $ref: "#/components/parameters/Model"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                defaultSchema:
+                  type: integer
+                  description: ID of the schema to use for implicitly created model versions.
+            examples:
+              default:
+                value:
+                  defaultSchema: 123456
+      responses:
+        "200":
+          description: Response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Model"
+        "401":
+          $ref: "#/components/responses/ErrorResponse"
+        "403":
+          $ref: "#/components/responses/ErrorResponse"
+        "422":
           $ref: "#/components/responses/ErrorResponse"
         "500":
           $ref: "#/components/responses/ErrorResponse"
@@ -122,7 +160,7 @@ paths:
       - models
       operationId: models-create-for-organization
       parameters:
-      - "$ref": "#/components/parameters/Organization"
+      - $ref: "#/components/parameters/Organization"
       requestBody:
         required: true
         content:
@@ -133,19 +171,23 @@ paths:
                 name:
                   type: string
                   description: The name of the model.
+                defaultSchema:
+                  type: integer
+                  description: ID of the schema to use for implicitly created model versions.
               required:
               - name
             examples:
               default:
                 value:
                   name: classifier
+                  defaultSchema: 123456
       responses:
         "201":
           description: Response
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Model"
+                $ref: "#/components/schemas/Model"
         "401":
           $ref: "#/components/responses/ErrorResponse"
         "403":
@@ -212,7 +254,7 @@ paths:
       - schemas
       operationId: schemas-create-for-organization
       parameters:
-      - "$ref": "#/components/parameters/Organization"
+      - $ref: "#/components/parameters/Organization"
       requestBody:
         required: true
         content:
@@ -247,7 +289,7 @@ paths:
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Schema"
+                $ref: "#/components/schemas/Schema"
         "401":
           $ref: "#/components/responses/ErrorResponse"
         "403":
@@ -316,8 +358,8 @@ paths:
       - versions
       operationId: versions-create-for-model
       parameters:
-      - "$ref": "#/components/parameters/Organization"
-      - "$ref": "#/components/parameters/Model"
+      - $ref: "#/components/parameters/Organization"
+      - $ref: "#/components/parameters/Model"
       requestBody:
         required: true
         content:
@@ -345,7 +387,7 @@ paths:
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Version"
+                $ref: "#/components/schemas/Version"
         "401":
           $ref: "#/components/responses/ErrorResponse"
         "403":
@@ -416,9 +458,9 @@ paths:
       - results
       operationId: results-create-for-version
       parameters:
-      - "$ref": "#/components/parameters/Organization"
-      - "$ref": "#/components/parameters/Model"
-      - "$ref": "#/components/parameters/Version"
+      - $ref: "#/components/parameters/Organization"
+      - $ref: "#/components/parameters/Model"
+      - $ref: "#/components/parameters/Version"
       requestBody:
         required: true
         content:
@@ -479,7 +521,7 @@ paths:
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Result"
+                $ref: "#/components/schemas/Result"
         "401":
           $ref: "#/components/responses/ErrorResponse"
         "403":
@@ -570,6 +612,10 @@ components:
           description: Name of the model.
           type: string
           example: object-detector
+        defaultSchema:
+          description: ID of the schema to use for implicitly created model versions.
+          type: integer
+          example: 123456
         organization:
           description: ID of the model's organization.
           type: integer
