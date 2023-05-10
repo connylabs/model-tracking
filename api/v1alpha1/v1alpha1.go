@@ -31,7 +31,10 @@ type Error struct {
 // Model A model represents a machine learning service fullfilling requests.
 type Model struct {
 	Created time.Time `json:"created"`
-	ID      int       `json:"id"`
+
+	// DefaultSchema ID of the schema to use for implicitly created model versions.
+	DefaultSchema *int `json:"defaultSchema,omitempty"`
+	ID            int  `json:"id"`
 
 	// Name Name of the model.
 	Name string `json:"name"`
@@ -143,8 +146,17 @@ type OrganizationsCreateJSONBody struct {
 
 // ModelsCreateForOrganizationJSONBody defines parameters for ModelsCreateForOrganization.
 type ModelsCreateForOrganizationJSONBody struct {
+	// DefaultSchema ID of the schema to use for implicitly created model versions.
+	DefaultSchema *int `json:"defaultSchema,omitempty"`
+
 	// Name The name of the model.
 	Name string `json:"name"`
+}
+
+// ModelsUpdateForOrganizationJSONBody defines parameters for ModelsUpdateForOrganization.
+type ModelsUpdateForOrganizationJSONBody struct {
+	// DefaultSchema ID of the schema to use for implicitly created model versions.
+	DefaultSchema *int `json:"defaultSchema,omitempty"`
 }
 
 // VersionsCreateForModelJSONBody defines parameters for VersionsCreateForModel.
@@ -188,6 +200,9 @@ type OrganizationsCreateJSONRequestBody OrganizationsCreateJSONBody
 
 // ModelsCreateForOrganizationJSONRequestBody defines body for ModelsCreateForOrganization for application/json ContentType.
 type ModelsCreateForOrganizationJSONRequestBody ModelsCreateForOrganizationJSONBody
+
+// ModelsUpdateForOrganizationJSONRequestBody defines body for ModelsUpdateForOrganization for application/json ContentType.
+type ModelsUpdateForOrganizationJSONRequestBody ModelsUpdateForOrganizationJSONBody
 
 // VersionsCreateForModelJSONRequestBody defines body for VersionsCreateForModel for application/json ContentType.
 type VersionsCreateForModelJSONRequestBody VersionsCreateForModelJSONBody
@@ -287,6 +302,11 @@ type ClientInterface interface {
 	// ModelsGetForOrganization request
 	ModelsGetForOrganization(ctx context.Context, parameterOrganization ParameterOrganization, parameterModel ParameterModel, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// ModelsUpdateForOrganization request with any body
+	ModelsUpdateForOrganizationWithBody(ctx context.Context, parameterOrganization ParameterOrganization, parameterModel ParameterModel, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	ModelsUpdateForOrganization(ctx context.Context, parameterOrganization ParameterOrganization, parameterModel ParameterModel, body ModelsUpdateForOrganizationJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// VersionsListForModel request
 	VersionsListForModel(ctx context.Context, parameterOrganization ParameterOrganization, parameterModel ParameterModel, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -383,6 +403,30 @@ func (c *Client) ModelsCreateForOrganization(ctx context.Context, parameterOrgan
 
 func (c *Client) ModelsGetForOrganization(ctx context.Context, parameterOrganization ParameterOrganization, parameterModel ParameterModel, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewModelsGetForOrganizationRequest(c.Server, parameterOrganization, parameterModel)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ModelsUpdateForOrganizationWithBody(ctx context.Context, parameterOrganization ParameterOrganization, parameterModel ParameterModel, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewModelsUpdateForOrganizationRequestWithBody(c.Server, parameterOrganization, parameterModel, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ModelsUpdateForOrganization(ctx context.Context, parameterOrganization ParameterOrganization, parameterModel ParameterModel, body ModelsUpdateForOrganizationJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewModelsUpdateForOrganizationRequest(c.Server, parameterOrganization, parameterModel, body)
 	if err != nil {
 		return nil, err
 	}
@@ -695,6 +739,60 @@ func NewModelsGetForOrganizationRequest(server string, parameterOrganization Par
 	if err != nil {
 		return nil, err
 	}
+
+	return req, nil
+}
+
+// NewModelsUpdateForOrganizationRequest calls the generic ModelsUpdateForOrganization builder with application/json body
+func NewModelsUpdateForOrganizationRequest(server string, parameterOrganization ParameterOrganization, parameterModel ParameterModel, body ModelsUpdateForOrganizationJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewModelsUpdateForOrganizationRequestWithBody(server, parameterOrganization, parameterModel, "application/json", bodyReader)
+}
+
+// NewModelsUpdateForOrganizationRequestWithBody generates requests for ModelsUpdateForOrganization with any type of body
+func NewModelsUpdateForOrganizationRequestWithBody(server string, parameterOrganization ParameterOrganization, parameterModel ParameterModel, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "organization", runtime.ParamLocationPath, parameterOrganization)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "model", runtime.ParamLocationPath, parameterModel)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/organizations/%s/models/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("PUT", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
 
 	return req, nil
 }
@@ -1187,6 +1285,11 @@ type ClientWithResponsesInterface interface {
 	// ModelsGetForOrganization request
 	ModelsGetForOrganizationWithResponse(ctx context.Context, parameterOrganization ParameterOrganization, parameterModel ParameterModel, reqEditors ...RequestEditorFn) (*ModelsGetForOrganizationResponse, error)
 
+	// ModelsUpdateForOrganization request with any body
+	ModelsUpdateForOrganizationWithBodyWithResponse(ctx context.Context, parameterOrganization ParameterOrganization, parameterModel ParameterModel, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ModelsUpdateForOrganizationResponse, error)
+
+	ModelsUpdateForOrganizationWithResponse(ctx context.Context, parameterOrganization ParameterOrganization, parameterModel ParameterModel, body ModelsUpdateForOrganizationJSONRequestBody, reqEditors ...RequestEditorFn) (*ModelsUpdateForOrganizationResponse, error)
+
 	// VersionsListForModel request
 	VersionsListForModelWithResponse(ctx context.Context, parameterOrganization ParameterOrganization, parameterModel ParameterModel, reqEditors ...RequestEditorFn) (*VersionsListForModelResponse, error)
 
@@ -1319,6 +1422,32 @@ func (r ModelsGetForOrganizationResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r ModelsGetForOrganizationResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ModelsUpdateForOrganizationResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *Model
+	JSON401      *Error
+	JSON403      *Error
+	JSON422      *Error
+	JSON500      *Error
+}
+
+// Status returns HTTPResponse.Status
+func (r ModelsUpdateForOrganizationResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ModelsUpdateForOrganizationResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -1609,6 +1738,23 @@ func (c *ClientWithResponses) ModelsGetForOrganizationWithResponse(ctx context.C
 		return nil, err
 	}
 	return ParseModelsGetForOrganizationResponse(rsp)
+}
+
+// ModelsUpdateForOrganizationWithBodyWithResponse request with arbitrary body returning *ModelsUpdateForOrganizationResponse
+func (c *ClientWithResponses) ModelsUpdateForOrganizationWithBodyWithResponse(ctx context.Context, parameterOrganization ParameterOrganization, parameterModel ParameterModel, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ModelsUpdateForOrganizationResponse, error) {
+	rsp, err := c.ModelsUpdateForOrganizationWithBody(ctx, parameterOrganization, parameterModel, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseModelsUpdateForOrganizationResponse(rsp)
+}
+
+func (c *ClientWithResponses) ModelsUpdateForOrganizationWithResponse(ctx context.Context, parameterOrganization ParameterOrganization, parameterModel ParameterModel, body ModelsUpdateForOrganizationJSONRequestBody, reqEditors ...RequestEditorFn) (*ModelsUpdateForOrganizationResponse, error) {
+	rsp, err := c.ModelsUpdateForOrganization(ctx, parameterOrganization, parameterModel, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseModelsUpdateForOrganizationResponse(rsp)
 }
 
 // VersionsListForModelWithResponse request returning *VersionsListForModelResponse
@@ -1919,6 +2065,60 @@ func ParseModelsGetForOrganizationResponse(rsp *http.Response) (*ModelsGetForOrg
 			return nil, err
 		}
 		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest Error
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseModelsUpdateForOrganizationResponse parses an HTTP response from a ModelsUpdateForOrganizationWithResponse call
+func ParseModelsUpdateForOrganizationResponse(rsp *http.Response) (*ModelsUpdateForOrganizationResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ModelsUpdateForOrganizationResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest Model
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest Error
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest Error
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 422:
+		var dest Error
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON422 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
 		var dest Error
@@ -2432,6 +2632,9 @@ type ServerInterface interface {
 	// Get organization model
 	// (GET /organizations/{organization}/models/{model})
 	ModelsGetForOrganization(w http.ResponseWriter, r *http.Request, parameterOrganization ParameterOrganization, parameterModel ParameterModel)
+	// Update an organization model
+	// (PUT /organizations/{organization}/models/{model})
+	ModelsUpdateForOrganization(w http.ResponseWriter, r *http.Request, parameterOrganization ParameterOrganization, parameterModel ParameterModel)
 	// List model versions
 	// (GET /organizations/{organization}/models/{model}/versions)
 	VersionsListForModel(w http.ResponseWriter, r *http.Request, parameterOrganization ParameterOrganization, parameterModel ParameterModel)
@@ -2563,6 +2766,41 @@ func (siw *ServerInterfaceWrapper) ModelsGetForOrganization(w http.ResponseWrite
 
 	var handler http.Handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.ModelsGetForOrganization(w, r, parameterOrganization, parameterModel)
+	})
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r.WithContext(ctx))
+}
+
+// ModelsUpdateForOrganization operation middleware
+func (siw *ServerInterfaceWrapper) ModelsUpdateForOrganization(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var err error
+
+	// ------------- Path parameter "organization" -------------
+	var parameterOrganization ParameterOrganization
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "organization", runtime.ParamLocationPath, chi.URLParam(r, "organization"), &parameterOrganization)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "organization", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "model" -------------
+	var parameterModel ParameterModel
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "model", runtime.ParamLocationPath, chi.URLParam(r, "model"), &parameterModel)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "model", Err: err})
+		return
+	}
+
+	var handler http.Handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ModelsUpdateForOrganization(w, r, parameterOrganization, parameterModel)
 	})
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -3040,6 +3278,9 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Get(options.BaseURL+"/organizations/{organization}/models/{model}", wrapper.ModelsGetForOrganization)
 	})
 	r.Group(func(r chi.Router) {
+		r.Put(options.BaseURL+"/organizations/{organization}/models/{model}", wrapper.ModelsUpdateForOrganization)
+	})
+	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/organizations/{organization}/models/{model}/versions", wrapper.VersionsListForModel)
 	})
 	r.Group(func(r chi.Router) {
@@ -3073,43 +3314,45 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
+	"H4sIAAAAAAAC/+xcS3PjuBH+KygkVXuhRNL2pHZ1c3ZmJ05lxltjZw/x6gCTkIQdimAAUDOOiv89hRff",
+	"pKiXJW35NOIDQLPxdffXjfasYUCXCY1xLDicrGGCGFpigZm6+kRDHMkfIeYBI4kgNIYT+LjAYCkfgRgt",
+	"8RjIa/kLEA5iKkCAOAYcx5wIssJj6EAihyVILKAD5ZtwAtUE0IEM/zclDIdwIliKHciDBV4iuah4SeSL",
+	"XDASz2HmwO+jOR2Z4b9aQbWMmQPv2RzF5H9IC9kmMy29sY/o5XkO8AUVwTMHfsE8jUT7JzD1DNy97xBN",
+	"Px8iFIkFnmPWKZWRInPgQz60KY+edh9lGsH2V6MRM3Pgb5jxThCs9MN9RDZTHEBmK2mWybl4QmOOleV9",
+	"YIzKLVB35I2AxgLHChUoSSISKLi4f3D9ncXCf2V4BifwL25h2K5+yl01K8zkalXF3MYAy2fACjFWIplx",
+	"uUBNjbYMdGDCaIKZIPpTAhqqL8Df0TKJMJzceDdOCwqxXSF/EX6mAvxC0ziETl2hWVn5T3oRO8c0c7pc",
+	"161xXAwnDHOpHIDAEgULEmMQYcRiEs8Bx2xFAgxmaRTNSBTJe3I1zAVv+UCGkZBilEW/8nx/5N2MfO/x",
+	"ypt4P02u/f9AB84oWyIBJzBEAo8EWeLmp8nNmaE0El2Gd/ce0BkQhfkJClKOwYwyQJYSHEREL8DIZb7Y",
+	"gFbJn4vpX13fvPtb226Q6vd0vFiF9d17OVJf1GX+LI3MSK0EqsgB6fMfOBCjEAscCMralEJ7/XuhEzX7",
+	"D7zi7Qd+dJqErTt5M/KuR971o//j5N2PE98bupM1kJLQ+hCnHkMshgoZpg4URCgJPplQaWbXutoc8m7j",
+	"asQjEutyeZ6gAIMFjUIJbKUvDlAcSvURZkD1KkA/Jso691/60vilTZxX3P/eDb+vgqOx710M4dbyg5J7",
+	"U6pIRZIKkDAapgEGzy8AgQQxQYI0QiwPiXR2js5wd4yQOEk7eJR6BOZkhWPpPXO/IS+smsSCcKPQKn74",
+	"9cR1n9PgKxauZAauoK7ZHCOGEU5G5/EX9O0T5hzNsZRp2R6Xau5roL96BZeoodPBpzWsxALl2AoluApt",
+	"yogkr7SildIr6z6tYRAhzqVRIqk9HlCG4cQb/5Q5xbOvRAgclx+/y6YbVa0A1Sq4fMIFWiZSQd8WEgMF",
+	"t/6GeP41Y/Beh2JuUSKH6i/Ov3IkGAq+WlPBkgsFmKwwN7MqU6kiaC+DkFTzvmdbAsoYDkRle/iCplEI",
+	"nnGxUVvsTV3//gDtH9qXOjnt7gG6eWUQtocHZ5uqFrxfe5bcOip7YoC3wcV/sYlaw7l3sb5by/Zqzh1/",
+	"T3AgeR4XLA1EyvIIqKTUkV0Lyvtd/MV6838+3H8GWm+g9LTu/rQ+KuDoStS6cX3B9LbPlw9UoZ6iXYX1",
+	"isLr+YYeU25Y6jbE+8HWJhpG2lliuM3ZVCXF/LNSrIPSmQs2LT40VW91SWUXffapqo2GeeGu14R+y2Nm",
+	"zYYy5dJntKOumOCAzEyVS1GVn2XS9gO3NN1Srttf76TGIhJgUykz+LxNULDA4GrsaS6oxakStlJMn0B/",
+	"7I29EYqSBfIVahIco4TACbyWT6QZIrFQFuiWVaLr5pS3ONaflWbk9jYwJQ1aXdyFtYSP61Gmuoi5+DsN",
+	"XwaUAA0MuBZDsVb5c4WitKwXnfxmWQW0VQfTbod5qbQjv+4HlJpz2oqCahG1Xgm98vyD1T+rlfZmGTQv",
+	"uGYOvNHrtk2Xy+dWy7Rq1PUuo66udhj1zvO2HiV3PV0uEXvJ4VlHp9xKNOdy06own8rRVei76/Jl5upa",
+	"kpRqjlvs4V+EG9Jqik4k3mwbqvrF5dBfKKtVRsrHVU/tqiheqW3/tAE0byugEYGXfBPi8tMpg3vEGHo5",
+	"K+h5N6eAntzOanXSQKcAn7kxzZxN3tXEhOFg0iOPAKdD+uvaIYClAtaNy9SczAhm/b782EcJQ1lcPXrk",
+	"TO4CwoYx4rd40RovgCWEDcMdGC7ctfo36wwbH7HYxco/4gNHDGfj+wYp+4aWywLjaSLIRywGwtCBrVUP",
+	"nazsAqx/q5GnxNbR48xZxZRsJ//vvfn/A5ucxv3R/L9rMTAgf7CvKlChgk1UzdUUH2zyYM/RLyIGDEov",
+	"8v6htwSjLcGoupYSRPNbQ7ILW7sdBLU8tXh9sB2hWLTyx97YL4p9Q6LDMP5fOqlr1Gt5T8NhI7ik3B46",
+	"E14us7clGV1nf6bQadY9dbpRNAW+JRw64agacrsd7xps3LX5tTH/2MoP6OTjVZ3A5hdzZB0zQTlH+J4u",
+	"RXkV5Lq6dWUIcTJvGhB3NoG1g1s3LVg6VRzt/NngPYh7FQ3yb9SrSb0sIgvE2ztDKFfRddcKwJxknTkE",
+	"D8nITPvLE0zQHANf2unV7/rL5xhc1a7Vc//3WJKZou0jYTgkgTm0fPId3/GneaNc1+lxtd2sPoUnp1D7",
+	"f90mbn+vpJVsvzbA4eL3t7T1strD9pJu6I8Z0HS5Vb/lpTVKnkMfZK/O6t0SPe2Ap84mbJh6SyaqyUT+",
+	"l3LN+HQ4Quau9Y+NuYUxqX1Ymc44zjcibn7VQvWY2ckZmsPpkhO0lxWU/jpwQ9Jh3hx0xKJPFS6136P4",
+	"I9S3pGBDw4eFT4E9e2dIhmCqf1sg6iKaPnKa2WA7zb6PMk9sFDh35LJbd9Lv1C1fLwZrQVtrwQfrWefb",
+	"krr2BvJT0znrYN7oXHszSt6V3HQqQwOau9Y/NpK27X3QCVpSLGCOSarOEJRn0pTSB0c5UuXBet9TFsEJ",
+	"XCeMChrQKJu47npBuZB+KHNRQtyVb7rTHbhCjKBnE0jsW5WgAv9x//D4+fbTB1jfkwcczUZyjG2+aOTl",
+	"dsKxVIoVqDr7Qohkh5ntZGMJlmmulrqBfYjDhJJYVxOWKEbzar85BymXs0o3/+XDw6P9M4CW/6CFKyPZ",
+	"PH1nR3L/UqbZYdga3Ty4fxELmmGr5L0RRdLYP31+FjFsfnuEoKZvJqj9a9n8Iptm/w8AAP///PK8kXxI",
+	"AAA=",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

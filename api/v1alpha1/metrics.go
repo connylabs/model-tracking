@@ -40,6 +40,13 @@ func (i *InstrumentedServerInterface) ModelsListForOrganization(w http.ResponseW
 	i.NewHandler(prometheus.Labels{"handler": "ModelsListForOrganization"}, http.HandlerFunc(handler))(w, r)
 }
 
+func (i *InstrumentedServerInterface) ModelsUpdateForOrganization(w http.ResponseWriter, r *http.Request, _c2 string, _c3 string) {
+	handler := func(w http.ResponseWriter, r *http.Request) {
+		i.ServerInterface.ModelsUpdateForOrganization(w, r, _c2, _c3)
+	}
+	i.NewHandler(prometheus.Labels{"handler": "ModelsUpdateForOrganization"}, http.HandlerFunc(handler))(w, r)
+}
+
 func (i *InstrumentedServerInterface) OrganizationsCreate(w http.ResponseWriter, r *http.Request) {
 	handler := func(w http.ResponseWriter, r *http.Request) {
 		i.ServerInterface.OrganizationsCreate(w, r)

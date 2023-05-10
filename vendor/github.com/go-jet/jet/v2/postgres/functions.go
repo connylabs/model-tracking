@@ -1,6 +1,17 @@
 package postgres
 
-import "github.com/go-jet/jet/v2/internal/jet"
+import (
+	"github.com/go-jet/jet/v2/internal/jet"
+)
+
+// This functions can be used, instead of its method counterparts, to have a better indentation of a complex condition
+// in the Go code and in the generated SQL.
+var (
+	// AND function adds AND operator between expressions.
+	AND = jet.AND
+	// OR function adds OR operator between expressions.
+	OR = jet.OR
+)
 
 // ROW is construct one table row from list of expressions.
 var ROW = jet.ROW
@@ -270,6 +281,26 @@ var TO_TIMESTAMP = jet.TO_TIMESTAMP
 
 //----------------- Date/Time Functions and Operators ------------//
 
+// Additional time unit types for EXTRACT function
+const (
+	DOW unit = MILLENNIUM + 1 + iota
+	DOY
+	EPOCH
+	ISODOW
+	ISOYEAR
+	JULIAN
+	QUARTER
+	TIMEZONE
+	TIMEZONE_HOUR
+	TIMEZONE_MINUTE
+)
+
+// EXTRACT function retrieves subfields such as year or hour from date/time values
+//          EXTRACT(DAY, User.CreatedAt)
+func EXTRACT(field unit, from Expression) FloatExpression {
+	return FloatExp(jet.EXTRACT(unitToString(field), from))
+}
+
 // CURRENT_DATE returns current date
 var CURRENT_DATE = jet.CURRENT_DATE
 
@@ -335,4 +366,26 @@ func explicitLiteralCast(expresion Expression) jet.Expression {
 	}
 
 	return expresion
+}
+
+// MODE computes the most frequent value of the aggregated argument
+var MODE = jet.MODE
+
+// PERCENTILE_CONT computes a value corresponding to the specified fraction within the ordered set of
+// aggregated argument values. This will interpolate between adjacent input items if needed.
+func PERCENTILE_CONT(fraction FloatExpression) *jet.OrderSetAggregateFunc {
+	return jet.PERCENTILE_CONT(castFloatLiteral(fraction))
+}
+
+// PERCENTILE_DISC computes  the first value within the ordered set of aggregated argument values whose position
+// in the ordering equals or exceeds the specified fraction. The aggregated argument must be of a sortable type.
+func PERCENTILE_DISC(fraction FloatExpression) *jet.OrderSetAggregateFunc {
+	return jet.PERCENTILE_DISC(castFloatLiteral(fraction))
+}
+
+func castFloatLiteral(fraction FloatExpression) FloatExpression {
+	if _, ok := fraction.(jet.LiteralExpression); ok {
+		return CAST(fraction).AS_DOUBLE() // to make postgres aware of the type
+	}
+	return fraction
 }
