@@ -98,11 +98,12 @@ func (s *server) ModelsListForOrganization(w http.ResponseWriter, r *http.Reques
 	models := make([]*Model, 0, len(ms))
 	for i := range ms {
 		models = append(models, &Model{
-			ID:           int(ms[i].ID),
-			Name:         ms[i].Name,
-			Organization: int(ms[i].Organization),
-			Created:      *ms[i].Created,
-			Updated:      *ms[i].Updated,
+			ID:            int(ms[i].ID),
+			Name:          ms[i].Name,
+			Organization:  int(ms[i].Organization),
+			DefaultSchema: int32PointerToIntPointer(ms[i].DefaultSchema),
+			Created:       *ms[i].Created,
+			Updated:       *ms[i].Updated,
 		})
 	}
 	s.httpJSON(w, models, http.StatusOK)
@@ -202,11 +203,12 @@ func (s *server) ModelsGetForOrganization(w http.ResponseWriter, r *http.Request
 	}
 
 	s.httpJSON(w, &Model{
-		ID:           int(m.ID),
-		Name:         m.Name,
-		Organization: int(m.Organization),
-		Created:      *m.Created,
-		Updated:      *m.Updated,
+		ID:            int(m.ID),
+		Name:          m.Name,
+		Organization:  int(m.Organization),
+		DefaultSchema: int32PointerToIntPointer(m.DefaultSchema),
+		Created:       *m.Created,
+		Updated:       *m.Updated,
 	}, http.StatusOK)
 }
 
