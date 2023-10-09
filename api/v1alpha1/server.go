@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/go-jet/jet/v2/qrm"
@@ -23,6 +24,9 @@ func httpError(logger log.Logger) func(w http.ResponseWriter, m string, code int
 		response := Error{
 			Code:  code,
 			Error: m,
+		}
+		if code/100 == 5 {
+			level.Error(logger).Log("msg", "unexpected error", "code", strconv.Itoa(code), "err", m)
 		}
 		hj(w, response, code)
 	}
