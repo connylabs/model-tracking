@@ -421,14 +421,11 @@ func (vss *versionsSQLStore) GetOrCreate(ctx context.Context, name string) (*mod
 		return v, nil
 	}
 	if !errors.Is(err, qrm.ErrNoRows) {
-		println("WAS NOT A NO RESULTS ERROR")
 		return nil, err
 	}
 
-	println("WAS A NO RESULTS ERROR")
 	m, err := NewModelsSQLStore(tx, vss.organization).Get(ctx, vss.model)
 	if err != nil {
-		println("DID NOT FIND A MODEL")
 		return nil, err
 	}
 
@@ -438,7 +435,6 @@ func (vss *versionsSQLStore) GetOrCreate(ctx context.Context, name string) (*mod
 
 	v, err = NewVersionsSQLStore(tx, vss.organization, vss.model).Create(ctx, &model.Version{Name: name, Model: m.ID, Organization: m.Organization, Schema: *m.DefaultSchema})
 	if err != nil {
-		println("COULD NOT CREAT E THE VERSION")
 		return nil, err
 	}
 
